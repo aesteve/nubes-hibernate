@@ -1,0 +1,53 @@
+package com.github.aesteve.nubes.hibernate.handlers.impl;
+
+import com.github.aesteve.nubes.hibernate.annotations.Create;
+import com.github.aesteve.nubes.hibernate.services.HibernateService;
+import com.github.aesteve.vertx.nubes.handlers.AnnotationProcessor;
+import com.github.aesteve.vertx.nubes.marshallers.Payload;
+
+import io.vertx.ext.web.RoutingContext;
+
+public class SavesAndReturnProcessor implements AnnotationProcessor<Create> {
+
+	public static final String SESSION_ID = "hibernate-session-id";
+	
+	private HibernateService hibernate;
+	
+	public SavesAndReturnProcessor(HibernateService hibernate) {
+		this.hibernate = hibernate;
+	}
+	
+	@Override
+	public void preHandle(RoutingContext context) {
+		hibernate.createSession(result -> {
+			if (result.failed()) {
+				context.fail(result.cause());
+			} else {
+				context.put(SESSION_ID, result.result());
+				context.next();
+			}
+		});
+	}
+
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	@Override
+	public void postHandle(RoutingContext context) {
+		Payload payload = context.get(Payload.DATA_ATTR);
+		String sessionId = context.get(SESSION_ID); 
+		hibernate.saveWithinTransaction(sessionId, payload.get(), res -> {
+			if (res.failed()) {
+				context.fail(res.cause());
+			} else {
+				payload.set(res.result());
+				context.put(Payload.DATA_ATTR, payload);
+				context.next();
+			}
+		});
+	}
+
+	@Override
+	public Class<? extends Create> getAnnotationType() {
+		return Create.class;
+	}
+
+}

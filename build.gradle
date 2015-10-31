@@ -1,0 +1,39 @@
+plugins {
+	id 'java'
+	id 'eclipse'
+	id 'idea'
+	id 'maven'
+}
+
+group='com.github.aesteve'
+version='0.1-SNAPSHOT'
+
+
+repositories {
+	mavenCentral()
+	mavenLocal()
+}
+
+def vertxVersion = "3.1.0"
+
+dependencies {
+
+	compile "com.github.aesteve:vertx-nubes:0.1-SNAPSHOT"
+	compile 'org.hibernate:hibernate-entitymanager:5.0.3.Final'
+
+	testCompile "io.vertx:vertx-unit:${vertxVersion}"
+	testCompile 'junit:junit:4.12'
+	testCompile 'org.apache.commons:commons-lang3:3.3.2'
+
+	testRuntime 'com.h2database:h2:1.4.186' // warning : change to testCompile if need to run in Eclipse	
+}
+
+compileTestJava {
+	options.compilerArgs << '-parameters'
+}
+
+test.outputs.upToDateWhen { false }
+
+task wrapper(type: Wrapper) {
+	gradleVersion = '2.8'
+}
