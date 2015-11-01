@@ -12,10 +12,12 @@ import com.github.aesteve.vertx.nubes.utils.async.AsyncUtils;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import mock.domains.Dog;
+import mock.domains.Master;
 
-public class DogFixture extends Fixture {
+public class TestFixture extends Fixture {
 
-	public static List<Dog> models;
+	public static List<Dog> dogs;
+	public static List<Master> masters;
 	
 	@Service(HibernateNubes.HIBERNATE_SERVICE_NAME)
 	private HibernateService service;
@@ -27,13 +29,20 @@ public class DogFixture extends Fixture {
 
 	@Override
 	public void startUp(Vertx vertx, Future<Void> future) {
-		models = new ArrayList<>();
-		models.add(new Dog("Snoopy", "Beagle"));
-		models.add(new Dog("Bill", "Cocker"));
-		models.add(new Dog("Rantanplan", "German_shepherd"));
-		models.add(new Dog("Milou", "Fox_terrier"));
-		models.add(new Dog("Idefix", "Westy"));
-		models.add(new Dog("Pluto", "Mutt"));
+		dogs = new ArrayList<>();
+		masters = new ArrayList<>();
+		dogs.add(new Dog("Snoopy", "Beagle"));
+		dogs.add(new Dog("Bill", "Cocker"));
+		dogs.add(new Dog("Rantanplan", "German_shepherd"));
+		Master tintin = new Master("Tintin", "DestinationMoon");
+		masters.add(tintin);
+		Dog milou = new Dog("Milou", "Fox_terrier");
+		milou.setMaster(tintin);
+		dogs.add(milou);
+		dogs.add(new Dog("Idefix", "Westy"));
+		dogs.add(new Dog("Pluto", "Mutt"));
+		List<Object> models = new ArrayList<>(dogs.size() + masters.size());
+		models.addAll(masters); models.addAll(dogs);
 		service.withEntityManager((entityManager, fut) -> {
 			service.saveWithinTransaction(entityManager, models, AsyncUtils.ignoreResult(fut));
 		}, AsyncUtils.ignoreResult(future));

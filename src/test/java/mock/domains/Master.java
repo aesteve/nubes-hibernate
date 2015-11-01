@@ -2,25 +2,21 @@ package mock.domains;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;
-import javax.persistence.ManyToOne;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
 
 @Entity
-public class Dog {
+public class Master {
 	@Id
 	private String name;
-	private String breed;
+	private String token;
 	
-	@ManyToOne
-	private Master master;
-
-	public Dog() {
+	public Master() {
 	}
 	
-	public Dog(String name, String breed) {
+	public Master(String name, String token) {
 		this.name = name;
-		this.breed = breed;
+		this.token = token;
 	}
 	
 	public String getName() {
@@ -29,21 +25,13 @@ public class Dog {
 	public void setName(String name) {
 		this.name = name;
 	}
-	public String getBreed() {
-		return breed;
+	public String getToken() {
+		return token;
 	}
-	public void setBreed(String breed) {
-		this.breed = breed;
+	public void setToken(String breed) {
+		this.token = breed;
 	}
-
-	public Master getMaster() {
-		return master;
-	}
-
-	public void setMaster(Master master) {
-		this.master = master;
-	}
-
+	
 	@Override
 	public boolean equals(Object other) {
 		return EqualsBuilder.reflectionEquals(this, other, true);

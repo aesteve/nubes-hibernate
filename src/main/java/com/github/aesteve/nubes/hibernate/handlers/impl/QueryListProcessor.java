@@ -1,8 +1,10 @@
 package com.github.aesteve.nubes.hibernate.handlers.impl;
 
+import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 
-import com.github.aesteve.nubes.hibernate.annotations.QueryList;
+import com.github.aesteve.nubes.hibernate.annotations.RetrieveByQuery;
+import com.github.aesteve.nubes.hibernate.queries.FindBy;
 import com.github.aesteve.nubes.hibernate.services.HibernateService;
 import com.github.aesteve.vertx.nubes.context.PaginationContext;
 import com.github.aesteve.vertx.nubes.handlers.AnnotationProcessor;
@@ -10,33 +12,30 @@ import com.github.aesteve.vertx.nubes.marshallers.Payload;
 
 import io.vertx.ext.web.RoutingContext;
 
-public class QueryListProcessor implements AnnotationProcessor<QueryList> {
-	
-	private HibernateService hibernate;
+public class QueryListProcessor extends OpenAndCloseProcessor implements AnnotationProcessor<RetrieveByQuery> {
 	
 	public QueryListProcessor(HibernateService hibernate) {
-		this.hibernate = hibernate;
-	}
-	
-	@Override
-	public void preHandle(RoutingContext context) {
-		hibernate.createSession(result -> {
-			if (result.failed()) {
-				context.fail(result.cause());
-			} else {
-				context.put(HibernateService.SESSION_ID_CTX, result.result());
-				context.next();
-			}
-		});
+		super(hibernate);
 	}
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	@Override
 	public void postHandle(RoutingContext context) {
-		Payload<CriteriaQuery<?>> payload = context.get(Payload.DATA_ATTR);
+		Payload<?> payload = context.get(Payload.DATA_ATTR);
+		Class<?> payloadClass = payload.getType();
+		CriteriaQuery<?> crit;
 		String sessionId = context.get(HibernateService.SESSION_ID_CTX);
+		if (CriteriaQuery.class.isAssignableFrom(payloadClass)) {
+			crit = (CriteriaQuery)payload.get();
+		} else if (payloadClass.equals(FindBy.class)) {
+			CriteriaBuilder builder = hibernate.getCriteriaBuilder(sessionId);
+			crit = ((FindBy)payload.get()).toCriteriaQuery(builder);
+		} else {
+			context.fail(new Exception("Unknown type of payload, cannot create query"));
+			return;
+		}
 		PaginationContext pageContext = context.get(PaginationContext.DATA_ATTR);
-		hibernate.listAndCount(sessionId, payload.get(), pageContext.firstItemInPage(), pageContext.lastItemInPage(), res -> {
+		hibernate.listAndCount(sessionId, crit, pageContext.firstItemInPage(), pageContext.lastItemInPage(), res -> {
 			if (res.failed()) {
 				context.put(Payload.DATA_ATTR, null);
 				context.fail(res.cause());
@@ -51,8 +50,8 @@ public class QueryListProcessor implements AnnotationProcessor<QueryList> {
 	}
 
 	@Override
-	public Class<? extends QueryList> getAnnotationType() {
-		return QueryList.class;
+	public Class<? extends RetrieveByQuery> getAnnotationType() {
+		return RetrieveByQuery.class;
 	}
 
 }

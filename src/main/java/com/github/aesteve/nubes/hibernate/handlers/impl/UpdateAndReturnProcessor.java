@@ -1,15 +1,15 @@
 package com.github.aesteve.nubes.hibernate.handlers.impl;
 
-import com.github.aesteve.nubes.hibernate.annotations.Create;
+import com.github.aesteve.nubes.hibernate.annotations.Update;
 import com.github.aesteve.nubes.hibernate.services.HibernateService;
 import com.github.aesteve.vertx.nubes.handlers.AnnotationProcessor;
 import com.github.aesteve.vertx.nubes.marshallers.Payload;
 
 import io.vertx.ext.web.RoutingContext;
 
-public class SavesAndReturnProcessor extends OpenAndCloseProcessor implements AnnotationProcessor<Create> {
+public class UpdateAndReturnProcessor extends OpenAndCloseProcessor implements AnnotationProcessor<Update> {
 	
-	public SavesAndReturnProcessor(HibernateService hibernate) {
+	public UpdateAndReturnProcessor(HibernateService hibernate) {
 		super(hibernate);
 	}
 
@@ -18,7 +18,7 @@ public class SavesAndReturnProcessor extends OpenAndCloseProcessor implements An
 	public void postHandle(RoutingContext context) {
 		Payload payload = context.get(Payload.DATA_ATTR);
 		String sessionId = context.get(HibernateService.SESSION_ID_CTX); 
-		hibernate.saveWithinTransaction(sessionId, payload.get(), res -> {
+		hibernate.updateWithinTransaction(sessionId, payload.get(), res -> {
 			if (res.failed()) {
 				context.fail(res.cause());
 			} else {
@@ -30,8 +30,8 @@ public class SavesAndReturnProcessor extends OpenAndCloseProcessor implements An
 	}
 
 	@Override
-	public Class<? extends Create> getAnnotationType() {
-		return Create.class;
+	public Class<? extends Update> getAnnotationType() {
+		return Update.class;
 	}
 
 }

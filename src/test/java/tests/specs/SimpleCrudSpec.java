@@ -6,16 +6,16 @@ import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
-import mock.fixtures.DogFixture;
+import mock.fixtures.TestFixture;
 import tests.HibernateNubesTestBase;
 
-public class SaveSpec extends HibernateNubesTestBase {
+public class SimpleCrudSpec extends HibernateNubesTestBase {
 
 	@Test
 	public void testSave(TestContext context) {
 		Async async = context.async();
 		JsonObject json = new JsonObject();
-		String name = "Milou";
+		String name = "NotADog";
 		String breed = "Fox";
 		json.put("name", name);
 		json.put("breed", breed);
@@ -43,7 +43,7 @@ public class SaveSpec extends HibernateNubesTestBase {
 			response.bodyHandler(buff -> {
 				String json = buff.toString("UTF-8");
 				JsonArray array = new JsonArray(json);
-				context.assertEquals(DogFixture.models.size(), array.size());
+				context.assertEquals(TestFixture.dogs.size(), array.size());
 				async.complete();
 			});
 		});
@@ -63,5 +63,46 @@ public class SaveSpec extends HibernateNubesTestBase {
 		});
 	}
 	
+	@Test
+	public void removeDog(TestContext context) {
+		Async async = context.async();
+		deleteJSON("/api/dogs/Snoopy/", response -> {
+			context.assertEquals(204, response.statusCode());
+			getJSON("/api/dogs", getResponse -> {
+				context.assertEquals(200, getResponse.statusCode());
+				getResponse.bodyHandler(buff -> {
+					String json = buff.toString("UTF-8");
+					JsonArray array = new JsonArray(json);
+					context.assertEquals(TestFixture.dogs.size() - 1, array.size());
+					async.complete();
+				});
+			});
+			
+		});
+		
+	}
+
+	@Test
+	public void updateDog(TestContext context) {
+		Async async = context.async();
+		String newBreed = "notABeagle";
+		JsonObject sent = new JsonObject().put("breed", newBreed);
+		putJSON("/api/dogs/Snoopy/", sent, response -> {
+			context.assertEquals(200, response.statusCode());
+			getJSON("/api/dogs/Snoopy/", getResponse -> {
+				context.assertEquals(200, getResponse.statusCode());
+				getResponse.bodyHandler(buff -> {
+					String json = buff.toString("UTF-8");
+					JsonObject obj = new JsonObject(json);
+					context.assertEquals("Snoopy", obj.getString("name"));
+					context.assertEquals(newBreed, obj.getString("breed"));
+					async.complete();
+				});
+			});
+			
+		});
+		
+	}
+
 	
 }

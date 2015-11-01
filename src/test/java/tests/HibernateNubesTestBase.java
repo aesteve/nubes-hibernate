@@ -40,8 +40,16 @@ public class HibernateNubesTestBase  {
 		}
 	}
 	
+	protected void deleteJSON(String path, Handler<HttpClientResponse> responseHandler) {
+		client().delete(path, responseHandler).putHeader(ACCEPT, "application/json").putHeader(CONTENT_TYPE, "application/json").end();
+	}
+
 	protected void sendJSON(String path, Object payload, Handler<HttpClientResponse> responseHandler) {
 		client().post(path, responseHandler).putHeader(ACCEPT, "application/json").putHeader(CONTENT_TYPE, "application/json").end(payload.toString());
+	}
+
+	protected void putJSON(String path, Object payload, Handler<HttpClientResponse> responseHandler) {
+		client().put(path, responseHandler).putHeader(ACCEPT, "application/json").putHeader(CONTENT_TYPE, "application/json").end(payload.toString());
 	}
 	
 	protected void getJSON(String path, Handler<HttpClientResponse> responseHandler) {

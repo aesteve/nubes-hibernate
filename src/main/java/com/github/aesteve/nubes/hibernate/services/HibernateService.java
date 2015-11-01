@@ -11,6 +11,7 @@ import java.util.function.Function;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.EntityTransaction;
+import javax.persistence.NoResultException;
 import javax.persistence.Persistence;
 import javax.persistence.Query;
 import javax.persistence.criteria.CriteriaBuilder;
@@ -19,6 +20,7 @@ import javax.persistence.criteria.CriteriaQuery;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.github.aesteve.nubes.hibernate.queries.FindBy;
 import com.github.aesteve.nubes.hibernate.queries.FindById;
 import com.github.aesteve.nubes.hibernate.queries.ListAndCount;
 import com.github.aesteve.vertx.nubes.services.Service;
@@ -35,8 +37,9 @@ public class HibernateService implements Service {
 	
 	protected final static Logger log = LoggerFactory.getLogger(HibernateService.class);
 	
-	private JsonObject config;
-	public Vertx vertx;
+	protected JsonObject config;
+	protected Vertx vertx;
+	
 	private EntityManagerFactory entityManagerFactory;
 	private Map<String, EntityManager> managers;
 	private Random rand;
@@ -147,6 +150,7 @@ public class HibernateService implements Service {
 	public void beginTransaction(String sessionId, Handler<AsyncResult<Void>> handler) {
 		EntityManager manager = getManager(sessionId, handler);
 		if (manager == null) {
+			handler.handle(Future.failedFuture("No entity manager found"));
 			return;
 		} 
 		vertx.executeBlocking(future -> {
@@ -162,6 +166,7 @@ public class HibernateService implements Service {
 	public void flushSession(String sessionId, Handler<AsyncResult<Void>> handler) {
 		EntityManager entityManager = getManager(sessionId, handler);
 		if (entityManager == null) {
+			handler.handle(Future.failedFuture("No entity manager found"));
 			return;
 		} 
 		vertx.executeBlocking(future -> {
@@ -177,6 +182,7 @@ public class HibernateService implements Service {
 	public void clearSession(String sessionId, Handler<AsyncResult<Void>> handler) {
 		EntityManager entityManager = getManager(sessionId, handler);
 		if (entityManager == null) {
+			handler.handle(Future.failedFuture("No entity manager found"));
 			return;
 		} 
 		vertx.executeBlocking(future -> {
@@ -192,6 +198,7 @@ public class HibernateService implements Service {
 	public void flushAndClose(String sessionId, Handler<AsyncResult<Void>> handler) {
 		EntityManager entityManager = getManager(sessionId, handler);
 		if (entityManager == null) {
+			handler.handle(Future.failedFuture("No entity manager found"));
 			return;
 		} 
 		vertx.executeBlocking(future -> {
@@ -209,9 +216,34 @@ public class HibernateService implements Service {
 		}, handler);
 	}
 	
+	public<T> void removeWithinTransaction(String sessionId, FindById<T> findById, Handler<AsyncResult<Void>> handler) {
+		EntityManager entityManager = getManager(sessionId, handler);
+		if (entityManager == null) {
+			handler.handle(Future.failedFuture("No entity manager found"));
+			return;
+		}
+		vertx.executeBlocking(future -> {
+			try {
+				EntityTransaction tx = entityManager.getTransaction();
+				tx.begin();
+				T model = entityManager.find(findById.clazz, findById.id);
+				if (model == null) {
+					future.fail("Could not find model");
+					return;
+				}
+				entityManager.remove(model);
+				tx.commit();
+				future.complete();
+			} catch (Exception e) {
+				future.fail(e);
+			}
+		}, handler);
+	}
+	
 	public<T> void saveWithinTransaction(String sessionId, T model, Handler<AsyncResult<T>> handler) {
 		EntityManager entityManager = getManager(sessionId, handler);
 		if (entityManager == null) {
+			handler.handle(Future.failedFuture("No entity manager found"));
 			return;
 		}
 		saveWithinTransaction(entityManager, model, handler);
@@ -232,6 +264,7 @@ public class HibernateService implements Service {
 	public<T> void saveWithinTransaction(String sessionId, List<T> models, Handler<AsyncResult<List<T>>> handler) {
 		EntityManager entityManager = getManager(sessionId, handler);
 		if (entityManager == null) {
+			handler.handle(Future.failedFuture("No entity manager found"));
 			return;
 		} 
 		saveWithinTransaction(entityManager, models, handler);
@@ -253,11 +286,66 @@ public class HibernateService implements Service {
 		}, handler);
 	}
 	
-	public<T> void find(String sessionId, FindById<T> findById, Handler<AsyncResult<T>> handler) {
+	public<T> void updateWithinTransaction(String sessionId, T model, Handler<AsyncResult<T>> handler) {
 		EntityManager entityManager = getManager(sessionId, handler);
 		if (entityManager == null) {
+			handler.handle(Future.failedFuture("No entity manager found"));
 			return;
 		} 
+		updateWithinTransaction(entityManager, model, handler);
+	}
+
+	public<T> void updateWithinTransaction(EntityManager entityManager, T model, Handler<AsyncResult<T>> handler) {
+		vertx.executeBlocking(future -> {
+			try {
+				EntityTransaction tx = entityManager.getTransaction();
+				tx.begin();
+				entityManager.merge(model);
+				tx.commit();
+				future.complete(model);
+			} catch (Exception e) {
+				future.fail(e);
+			}
+		}, handler);
+	}
+
+	
+	public<T> void findBy(String sessionId, FindBy<T> findBy, Handler<AsyncResult<T>> handler) {
+		EntityManager entityManager = getManager(sessionId, handler);
+		if (entityManager == null) {
+			handler.handle(Future.failedFuture("No entity manager found"));
+			return;
+		} 
+		findBy(entityManager, findBy, handler);
+	}
+	
+	@SuppressWarnings("unchecked")
+	public<T> void findBy(EntityManager entityManager, FindBy<T> findBy, Handler<AsyncResult<T>> handler) {
+		vertx.executeBlocking(future -> {
+			CriteriaBuilder builder = entityManager.getCriteriaBuilder();
+			CriteriaQuery<T> crit = findBy.toCriteriaQuery(builder);
+			Query q = entityManager.createQuery(crit);
+			try {
+				T result = (T)q.getSingleResult();
+				future.complete(result);
+			} catch(NoResultException nre) {
+				future.complete(null);
+			} catch(Exception e) {
+				future.fail(e);
+			}
+		}, handler);
+	}
+	
+	public<T> void findById(String sessionId, FindById<T> findById, Handler<AsyncResult<T>> handler) {
+		EntityManager entityManager = getManager(sessionId, handler);
+		if (entityManager == null) {
+			handler.handle(Future.failedFuture("No entity manager found"));
+			return;
+		} 
+		findById(entityManager, findById, handler);
+	}
+	
+	public<T> void findById(EntityManager entityManager, FindById<T> findById, Handler<AsyncResult<T>> handler) {
 		vertx.executeBlocking(future -> {
 			try {
 				T result = entityManager.find(findById.clazz, findById.id);
@@ -280,6 +368,7 @@ public class HibernateService implements Service {
 	public void persist(String sessionId, Object model, Handler<AsyncResult<Void>> handler) {
 		EntityManager entityManager = getManager(sessionId, handler);
 		if (entityManager == null) {
+			handler.handle(Future.failedFuture("No entity manager found"));
 			return;
 		} 
 		vertx.executeBlocking(future -> {
@@ -296,6 +385,7 @@ public class HibernateService implements Service {
 	public<T> void list(String sessionId, CriteriaQuery<T> criteria, Integer firstItem, Integer lastItem, Handler<AsyncResult<List<T>>> handler) {
 		EntityManager entityManager = getManager(sessionId, handler);
 		if (entityManager == null) {
+			handler.handle(Future.failedFuture("No entity manager found"));
 			return;
 		} 
 		vertx.executeBlocking(future -> {
@@ -319,6 +409,7 @@ public class HibernateService implements Service {
 	public<T> void listAndCount(String sessionId, CriteriaQuery<T> criteria, Integer firstItem, Integer lastItem, Handler<AsyncResult<ListAndCount<T>>> handler) {
 		EntityManager entityManager = getManager(sessionId, handler);
 		if (entityManager == null) {
+			handler.handle(Future.failedFuture("No entity manager found"));
 			return;
 		} 
 		vertx.executeBlocking(future -> {
@@ -352,7 +443,6 @@ public class HibernateService implements Service {
 		EntityManager entityManager = getManager(sessionId, handler);
 		if (entityManager == null) {
 			handler.handle(Future.failedFuture("No entity manager found with id : "+sessionId));
-			return;
 		} 
 		vertx.executeBlocking(future -> {
 			try {
@@ -375,9 +465,9 @@ public class HibernateService implements Service {
 		return "HibernateSession-" + System.currentTimeMillis() + "-" + rand.nextInt();
 	}
 	
-	private<T> EntityManager getManager(String sessionId, Handler<AsyncResult<T>> handler) {
+	public<T> EntityManager getManager(String sessionId, Handler<AsyncResult<T>> handler) {
 		EntityManager mgr = getMap().get(sessionId);
-		if (mgr == null) {
+		if (mgr == null && handler != null) {
 			handler.handle(Future.failedFuture("No entity manager found for sessionId " + sessionId));
 		}
 		return mgr;
