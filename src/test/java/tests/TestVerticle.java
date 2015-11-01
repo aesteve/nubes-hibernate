@@ -8,15 +8,12 @@ import com.github.aesteve.vertx.nubes.VertxNubes;
 
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Future;
-import io.vertx.core.http.HttpClientOptions;
 import io.vertx.core.http.HttpServer;
 import io.vertx.core.http.HttpServerOptions;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
-import io.vertx.ext.web.Router;
-import io.vertx.ext.web.handler.BodyHandler;
 
 public class TestVerticle extends AbstractVerticle {
 	private static final Logger log = LoggerFactory.getLogger(TestVerticle.class);

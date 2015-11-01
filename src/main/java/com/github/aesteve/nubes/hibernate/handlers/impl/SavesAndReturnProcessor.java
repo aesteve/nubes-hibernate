@@ -8,8 +8,6 @@ import com.github.aesteve.vertx.nubes.marshallers.Payload;
 import io.vertx.ext.web.RoutingContext;
 
 public class SavesAndReturnProcessor implements AnnotationProcessor<Create> {
-
-	public static final String SESSION_ID = "hibernate-session-id";
 	
 	private HibernateService hibernate;
 	
@@ -23,7 +21,7 @@ public class SavesAndReturnProcessor implements AnnotationProcessor<Create> {
 			if (result.failed()) {
 				context.fail(result.cause());
 			} else {
-				context.put(SESSION_ID, result.result());
+				context.put(HibernateService.SESSION_ID_CTX, result.result());
 				context.next();
 			}
 		});
@@ -33,7 +31,7 @@ public class SavesAndReturnProcessor implements AnnotationProcessor<Create> {
 	@Override
 	public void postHandle(RoutingContext context) {
 		Payload payload = context.get(Payload.DATA_ATTR);
-		String sessionId = context.get(SESSION_ID); 
+		String sessionId = context.get(HibernateService.SESSION_ID_CTX); 
 		hibernate.saveWithinTransaction(sessionId, payload.get(), res -> {
 			if (res.failed()) {
 				context.fail(res.cause());

@@ -1,9 +1,11 @@
 package com.github.aesteve.nubes.hibernate.services;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.function.BiConsumer;
 import java.util.function.Function;
 
 import javax.persistence.EntityManager;
@@ -18,6 +20,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.github.aesteve.nubes.hibernate.queries.FindById;
+import com.github.aesteve.nubes.hibernate.queries.ListAndCount;
 import com.github.aesteve.vertx.nubes.services.Service;
 
 import io.vertx.core.AsyncResult;
@@ -28,6 +31,8 @@ import io.vertx.core.json.JsonObject;
 
 public class HibernateService implements Service {
 
+	public static String SESSION_ID_CTX = "hibernate-session-id";
+	
 	protected final static Logger log = LoggerFactory.getLogger(HibernateService.class);
 	
 	private JsonObject config;
@@ -76,6 +81,22 @@ public class HibernateService implements Service {
 	
 	
 	// Utility functions
+	public void withEntityManager(BiConsumer<EntityManager, Future<Void>> consumer, Handler<AsyncResult<Void>> resultHandler) {
+		vertx.executeBlocking(future -> {
+			EntityManager em = entityManagerFactory.createEntityManager();
+			Future<Void> handlerFuture = Future.future(); 
+			handlerFuture.setHandler(res -> {
+				closeSilently(em);
+				if (res.failed()) {
+					future.fail(res.cause());
+				} else {
+					future.complete();
+				}
+			});
+			consumer.accept(em, handlerFuture);
+		}, resultHandler);
+	}
+	
 	
 	public<T> void withEntityManager(Function<EntityManager, T> blockingHandler, Handler<AsyncResult<T>> resultHandler) {
 		vertx.executeBlocking(handler -> {
@@ -192,14 +213,40 @@ public class HibernateService implements Service {
 		EntityManager entityManager = getManager(sessionId, handler);
 		if (entityManager == null) {
 			return;
+		}
+		saveWithinTransaction(entityManager, model, handler);
+	}
+	
+	public<T> void saveWithinTransaction(EntityManager entityManager, T model, Handler<AsyncResult<T>> handler) {
+		List<T> models = new ArrayList<>(1);
+		models.add(model);
+		saveWithinTransaction(entityManager, models, res -> {
+			if (res.failed()) {
+				handler.handle(Future.failedFuture(res.cause()));
+			} else {
+				handler.handle(Future.succeededFuture(res.result().get(0)));
+			}
+		});
+	}
+	
+	public<T> void saveWithinTransaction(String sessionId, List<T> models, Handler<AsyncResult<List<T>>> handler) {
+		EntityManager entityManager = getManager(sessionId, handler);
+		if (entityManager == null) {
+			return;
 		} 
+		saveWithinTransaction(entityManager, models, handler);
+	}
+	
+	public<T> void saveWithinTransaction(EntityManager entityManager, List<T> models, Handler<AsyncResult<List<T>>> handler) {
 		vertx.executeBlocking(future -> {
 			try {
 				EntityTransaction tx = entityManager.getTransaction();
 				tx.begin();
-				entityManager.persist(model);
+				models.forEach(model -> {
+					entityManager.persist(model);
+				});
 				tx.commit();
-				future.complete(model);
+				future.complete(models);
 			} catch (Exception e) {
 				future.fail(e);
 			}
@@ -262,6 +309,38 @@ public class HibernateService implements Service {
 				}
 				List<T> list = query.getResultList();
 				future.complete(list);
+			} catch (Exception e) {
+				future.fail(e);
+			}
+		}, handler);		
+	}
+	
+	@SuppressWarnings("unchecked")
+	public<T> void listAndCount(String sessionId, CriteriaQuery<T> criteria, Integer firstItem, Integer lastItem, Handler<AsyncResult<ListAndCount<T>>> handler) {
+		EntityManager entityManager = getManager(sessionId, handler);
+		if (entityManager == null) {
+			return;
+		} 
+		vertx.executeBlocking(future -> {
+			try {
+				ListAndCount<T> listAndCount = new ListAndCount<>();
+				Query query = entityManager.createQuery(criteria);
+				if (firstItem != null) {
+					query.setFirstResult(firstItem);
+					if (lastItem != null) {
+						query.setMaxResults(lastItem - firstItem);
+					}
+				}
+				listAndCount.list = query.getResultList();
+				CriteriaBuilder builder = entityManager.getCriteriaBuilder();
+				CriteriaQuery<Long> countCritQuery = builder.createQuery(Long.class);
+
+				countCritQuery.select(builder.count(countCritQuery.from(criteria.getResultType())));
+				if (criteria.getRestriction() != null) {
+					countCritQuery.where(criteria.getRestriction());
+				}
+				listAndCount.count = entityManager.createQuery(countCritQuery).getSingleResult();
+				future.complete(listAndCount);
 			} catch (Exception e) {
 				future.fail(e);
 			}

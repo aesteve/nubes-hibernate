@@ -1,18 +1,20 @@
 package com.github.aesteve.nubes.hibernate.handlers.impl;
 
-import com.github.aesteve.nubes.hibernate.annotations.GetById;
-import com.github.aesteve.nubes.hibernate.queries.FindById;
+import javax.persistence.criteria.CriteriaQuery;
+
+import com.github.aesteve.nubes.hibernate.annotations.QueryList;
 import com.github.aesteve.nubes.hibernate.services.HibernateService;
+import com.github.aesteve.vertx.nubes.context.PaginationContext;
 import com.github.aesteve.vertx.nubes.handlers.AnnotationProcessor;
 import com.github.aesteve.vertx.nubes.marshallers.Payload;
 
 import io.vertx.ext.web.RoutingContext;
 
-public class GetByIdProcessor implements AnnotationProcessor<GetById> {
+public class QueryListProcessor implements AnnotationProcessor<QueryList> {
 	
 	private HibernateService hibernate;
 	
-	public GetByIdProcessor(HibernateService hibernate) {
+	public QueryListProcessor(HibernateService hibernate) {
 		this.hibernate = hibernate;
 	}
 	
@@ -31,15 +33,17 @@ public class GetByIdProcessor implements AnnotationProcessor<GetById> {
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	@Override
 	public void postHandle(RoutingContext context) {
-		Payload<FindById<?>> payload = context.get(Payload.DATA_ATTR);
+		Payload<CriteriaQuery<?>> payload = context.get(Payload.DATA_ATTR);
 		String sessionId = context.get(HibernateService.SESSION_ID_CTX);
-		hibernate.find(sessionId, payload.get(), res -> {
+		PaginationContext pageContext = context.get(PaginationContext.DATA_ATTR);
+		hibernate.listAndCount(sessionId, payload.get(), pageContext.firstItemInPage(), pageContext.lastItemInPage(), res -> {
 			if (res.failed()) {
 				context.put(Payload.DATA_ATTR, null);
 				context.fail(res.cause());
 			} else {
 				Payload newPayload = new Payload<>();
-				newPayload.set(res.result());
+				newPayload.set(res.result().list);
+				pageContext.setNbItems(res.result().count);
 				context.put(Payload.DATA_ATTR, newPayload);
 				context.next();
 			}
@@ -47,8 +51,8 @@ public class GetByIdProcessor implements AnnotationProcessor<GetById> {
 	}
 
 	@Override
-	public Class<? extends GetById> getAnnotationType() {
-		return GetById.class;
+	public Class<? extends QueryList> getAnnotationType() {
+		return QueryList.class;
 	}
 
 }
