@@ -1,4 +1,4 @@
-package tests.specs;
+package tests.specs.web;
 
 import org.junit.Test;
 

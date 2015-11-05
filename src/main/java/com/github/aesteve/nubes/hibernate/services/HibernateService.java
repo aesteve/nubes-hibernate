@@ -1,5 +1,11 @@
 package com.github.aesteve.nubes.hibernate.services;
 
+import io.vertx.core.AsyncResult;
+import io.vertx.core.Future;
+import io.vertx.core.Handler;
+import io.vertx.core.Vertx;
+import io.vertx.core.json.JsonObject;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -24,12 +30,6 @@ import com.github.aesteve.nubes.hibernate.queries.FindBy;
 import com.github.aesteve.nubes.hibernate.queries.FindById;
 import com.github.aesteve.nubes.hibernate.queries.ListAndCount;
 import com.github.aesteve.vertx.nubes.services.Service;
-
-import io.vertx.core.AsyncResult;
-import io.vertx.core.Future;
-import io.vertx.core.Handler;
-import io.vertx.core.Vertx;
-import io.vertx.core.json.JsonObject;
 
 public class HibernateService implements Service {
 
@@ -131,21 +131,24 @@ public class HibernateService implements Service {
 		}, resultHandler);
 	}
 
-	public void withinTransactionDo(BiConsumer<EntityManager, Future<Void>> actions, Handler<AsyncResult<Void>> handler) {
+	public void withinTransactionDo(BiConsumer<EntityManager, Future<Object>> actions, Handler<AsyncResult<Object>> handler) {
 		vertx.executeBlocking(future -> {
-			EntityManager em = null;
 			try {
-				em = entityManagerFactory.createEntityManager();
-				EntityTransaction tx = em.getTransaction();
+				final EntityManager em = entityManagerFactory.createEntityManager();
+				final EntityTransaction tx = em.getTransaction();
+				future.setHandler(res -> {
+					tx.commit();
+					closeSilently(em);
+					handler.handle(res);
+				});
 				tx.begin();
 				actions.accept(em, future);
-				tx.commit();
 			} catch (Throwable t) {
 				future.fail(t);
-			} finally {
-				closeSilently(em);
 			}
-		}, handler);
+		}, res -> {
+			handler.handle(res);
+		});
 	}
 
 	public void createSession(Handler<AsyncResult<String>> handler) {
