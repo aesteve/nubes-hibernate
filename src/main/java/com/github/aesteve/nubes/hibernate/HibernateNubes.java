@@ -32,27 +32,29 @@ public class HibernateNubes extends VertxNubes {
 
 	public static final String HIBERNATE_SERVICE_NAME = "hibernate";
 
+	protected HibernateService hibernate;
+
 	private JsonObject jsonConfig;
 
 	public HibernateNubes(Vertx vertx, JsonObject config) {
 		super(vertx, config);
 		this.jsonConfig = config;
+		hibernate = new HibernateService(jsonConfig);
 	}
 
 	@Override
 	public void bootstrap(Handler<AsyncResult<Router>> handler) {
-		HibernateService service = new HibernateService(jsonConfig);
-		service.init(vertx, jsonConfig);
-		registerService(HIBERNATE_SERVICE_NAME, service);
-		registerAnnotationProcessor(Create.class, new SavesAndReturnProcessorFactory(service));
-		registerAnnotationProcessor(Update.class, new UpdateAndReturnProcessorFactory(service));
-		registerAnnotationProcessor(RetrieveById.class, new GetByIdProcessorFactory(service));
-		registerAnnotationProcessor(RetrieveByQuery.class, new QueryListProcessorFactory(service));
-		registerAnnotationProcessor(RemoveById.class, new RemoveByIdProcessorFactory(service));
-		registerAnnotationProcessor(SessionPerRequest.class, new SessionPerRequestProcessorFactory(service));
-		registerAnnotationProcessor(Transactional.class, new TransactionalProcessorFactory(service));
-		registerTypeParamInjector(CriteriaBuilder.class, new CriteriaBuilderParamInjector(service));
-		registerTypeParamInjector(EntityManager.class, new EntityManagerInjector(service));
+		hibernate.init(vertx, jsonConfig);
+		registerService(HIBERNATE_SERVICE_NAME, hibernate);
+		registerAnnotationProcessor(Create.class, new SavesAndReturnProcessorFactory(hibernate));
+		registerAnnotationProcessor(Update.class, new UpdateAndReturnProcessorFactory(hibernate));
+		registerAnnotationProcessor(RetrieveById.class, new GetByIdProcessorFactory(hibernate));
+		registerAnnotationProcessor(RetrieveByQuery.class, new QueryListProcessorFactory(hibernate));
+		registerAnnotationProcessor(RemoveById.class, new RemoveByIdProcessorFactory(hibernate));
+		registerAnnotationProcessor(SessionPerRequest.class, new SessionPerRequestProcessorFactory(hibernate));
+		registerAnnotationProcessor(Transactional.class, new TransactionalProcessorFactory(hibernate));
+		registerTypeParamInjector(CriteriaBuilder.class, new CriteriaBuilderParamInjector(hibernate));
+		registerTypeParamInjector(EntityManager.class, new EntityManagerInjector(hibernate));
 		super.bootstrap(handler);
 	}
 
