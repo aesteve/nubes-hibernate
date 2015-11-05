@@ -131,6 +131,23 @@ public class HibernateService implements Service {
 		}, resultHandler);
 	}
 
+	public void withinTransactionDo(BiConsumer<EntityManager, Future<Void>> actions, Handler<AsyncResult<Void>> handler) {
+		vertx.executeBlocking(future -> {
+			EntityManager em = null;
+			try {
+				em = entityManagerFactory.createEntityManager();
+				EntityTransaction tx = em.getTransaction();
+				tx.begin();
+				actions.accept(em, future);
+				tx.commit();
+			} catch (Throwable t) {
+				future.fail(t);
+			} finally {
+				closeSilently(em);
+			}
+		}, handler);
+	}
+
 	public void createSession(Handler<AsyncResult<String>> handler) {
 		vertx.executeBlocking(future -> {
 			try {
