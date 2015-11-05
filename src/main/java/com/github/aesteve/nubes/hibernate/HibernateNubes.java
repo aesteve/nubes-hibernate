@@ -31,18 +31,18 @@ import io.vertx.ext.web.Router;
 public class HibernateNubes extends VertxNubes {
 
 	public static final String HIBERNATE_SERVICE_NAME = "hibernate";
-	
+
 	private JsonObject jsonConfig;
-	
+
 	public HibernateNubes(Vertx vertx, JsonObject config) {
 		super(vertx, config);
 		this.jsonConfig = config;
 	}
-	
+
 	@Override
 	public void bootstrap(Handler<AsyncResult<Router>> handler) {
 		HibernateService service = new HibernateService(jsonConfig);
-		service.init(vertx);
+		service.init(vertx, jsonConfig);
 		registerService(HIBERNATE_SERVICE_NAME, service);
 		registerAnnotationProcessor(Create.class, new SavesAndReturnProcessorFactory(service));
 		registerAnnotationProcessor(Update.class, new UpdateAndReturnProcessorFactory(service));
@@ -55,5 +55,5 @@ public class HibernateNubes extends VertxNubes {
 		registerTypeParamInjector(EntityManager.class, new EntityManagerInjector(service));
 		super.bootstrap(handler);
 	}
-	
+
 }
