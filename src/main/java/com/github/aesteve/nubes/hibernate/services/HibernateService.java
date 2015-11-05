@@ -82,10 +82,10 @@ public class HibernateService implements Service {
 	}
 
 	// Utility functions
-	public void withEntityManager(BiConsumer<EntityManager, Future<Void>> consumer, Handler<AsyncResult<Void>> resultHandler) {
+	public <T> void withEntityManager(BiConsumer<EntityManager, Future<T>> consumer, Handler<AsyncResult<T>> resultHandler) {
 		vertx.executeBlocking(future -> {
 			EntityManager em = entityManagerFactory.createEntityManager();
-			Future<Void> handlerFuture = Future.future();
+			Future<T> handlerFuture = Future.future();
 			handlerFuture.setHandler(res -> {
 				closeSilently(em);
 				if (res.failed()) {
