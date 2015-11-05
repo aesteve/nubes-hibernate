@@ -40,12 +40,12 @@ public class HibernateNubes extends VertxNubes {
 		super(vertx, config);
 		this.jsonConfig = config;
 		hibernate = new HibernateService(jsonConfig);
+		registerService(HIBERNATE_SERVICE_NAME, hibernate);
 	}
 
 	@Override
 	public void bootstrap(Handler<AsyncResult<Router>> handler) {
 		hibernate.init(vertx, jsonConfig);
-		registerService(HIBERNATE_SERVICE_NAME, hibernate);
 		registerAnnotationProcessor(Create.class, new SavesAndReturnProcessorFactory(hibernate));
 		registerAnnotationProcessor(Update.class, new UpdateAndReturnProcessorFactory(hibernate));
 		registerAnnotationProcessor(RetrieveById.class, new GetByIdProcessorFactory(hibernate));
