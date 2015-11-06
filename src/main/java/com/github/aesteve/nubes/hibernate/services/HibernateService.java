@@ -221,9 +221,12 @@ public class HibernateService implements Service {
 		vertx.executeBlocking(future -> {
 			try {
 				getMap().remove(sessionId);
-				if (entityManager.getTransaction() != null) {
-					entityManager.flush();
-					entityManager.getTransaction().commit();
+				EntityTransaction tx = entityManager.getTransaction();
+				if (tx != null) {
+					if (tx.isActive()) {
+						entityManager.flush();
+					}
+					tx.commit();
 				}
 				entityManager.close();
 				future.complete();
