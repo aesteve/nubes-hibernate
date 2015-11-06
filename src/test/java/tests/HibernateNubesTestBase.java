@@ -20,12 +20,12 @@ import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
 
 @RunWith(VertxUnitRunner.class)
-public class HibernateNubesTestBase  {
-	
+public abstract class HibernateNubesTestBase {
+
 	protected JsonObject config;
 	protected HibernateService service;
 	protected Vertx vertx;
-	
+
 	@Before
 	public void setUp(TestContext context) throws Exception {
 		vertx = Vertx.vertx();
@@ -39,7 +39,7 @@ public class HibernateNubesTestBase  {
 			vertx.close(context.asyncAssertSuccess());
 		}
 	}
-	
+
 	protected void deleteJSON(String path, Handler<HttpClientResponse> responseHandler) {
 		client().delete(path, responseHandler).putHeader(ACCEPT, "application/json").putHeader(CONTENT_TYPE, "application/json").end();
 	}
@@ -51,15 +51,15 @@ public class HibernateNubesTestBase  {
 	protected void putJSON(String path, Object payload, Handler<HttpClientResponse> responseHandler) {
 		client().put(path, responseHandler).putHeader(ACCEPT, "application/json").putHeader(CONTENT_TYPE, "application/json").end(payload.toString());
 	}
-	
+
 	protected void getJSON(String path, Handler<HttpClientResponse> responseHandler) {
 		client().get(path, responseHandler).putHeader(ACCEPT, "application/json").end();
 	}
-	
+
 	protected HttpClient client() {
 		return vertx.createHttpClient(options());
 	}
-	
+
 	private static HttpClientOptions options() {
 		HttpClientOptions options = new HttpClientOptions();
 		options.setDefaultHost(TestVerticle.HOST);
