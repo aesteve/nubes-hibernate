@@ -91,7 +91,7 @@ public class HibernateService implements Service {
 				if (res.failed()) {
 					future.fail(res.cause());
 				} else {
-					future.complete();
+					future.complete(res.result());
 				}
 			});
 			consumer.accept(em, handlerFuture);
