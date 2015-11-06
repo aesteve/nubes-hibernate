@@ -9,11 +9,11 @@ import com.github.aesteve.vertx.nubes.marshallers.Payload;
 import io.vertx.ext.web.RoutingContext;
 
 public class GetByIdProcessor extends OpenAndCloseProcessor implements AnnotationProcessor<RetrieveById> {
-	
+
 	public GetByIdProcessor(HibernateService hibernate) {
 		super(hibernate);
 	}
-	
+
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	@Override
 	public void postHandle(RoutingContext context) {
@@ -26,6 +26,10 @@ public class GetByIdProcessor extends OpenAndCloseProcessor implements Annotatio
 			} else {
 				Payload newPayload = new Payload<>();
 				newPayload.set(res.result());
+				if (res.result() == null) {
+					context.fail(404);
+					return;
+				}
 				context.put(Payload.DATA_ATTR, newPayload);
 				context.next();
 			}

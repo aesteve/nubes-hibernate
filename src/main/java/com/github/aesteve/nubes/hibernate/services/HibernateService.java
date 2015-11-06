@@ -222,15 +222,14 @@ public class HibernateService implements Service {
 			try {
 				getMap().remove(sessionId);
 				EntityTransaction tx = entityManager.getTransaction();
-				if (tx != null) {
-					if (tx.isActive()) {
-						entityManager.flush();
-					}
+				if (tx != null && tx.isActive()) {
+					entityManager.flush();
 					tx.commit();
 				}
 				entityManager.close();
 				future.complete();
 			} catch (Exception e) {
+				log.error("Could not flush and close session", e);
 				future.fail(e);
 			}
 		}, handler);
