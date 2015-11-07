@@ -2,10 +2,10 @@ package mock.controllers;
 
 import javax.persistence.EntityManager;
 
-import com.github.aesteve.nubes.hibernate.HibernateNubes;
-import com.github.aesteve.nubes.hibernate.annotations.RetrieveByQuery;
-import com.github.aesteve.nubes.hibernate.queries.FindBy;
-import com.github.aesteve.nubes.hibernate.services.HibernateService;
+import com.github.aesteve.nubes.orm.annotations.RetrieveByQuery;
+import com.github.aesteve.nubes.orm.hibernate.HibernateNubes;
+import com.github.aesteve.nubes.orm.hibernate.queries.FindBy;
+import com.github.aesteve.nubes.orm.hibernate.services.HibernateService;
 import com.github.aesteve.vertx.nubes.annotations.Controller;
 import com.github.aesteve.vertx.nubes.annotations.mixins.ContentType;
 import com.github.aesteve.vertx.nubes.annotations.params.Param;

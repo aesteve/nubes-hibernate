@@ -3,7 +3,7 @@ package tests;
 import static com.github.aesteve.vertx.nubes.utils.async.AsyncUtils.completeOrFail;
 import static com.github.aesteve.vertx.nubes.utils.async.AsyncUtils.onSuccessOnly;
 
-import com.github.aesteve.nubes.hibernate.HibernateNubes;
+import com.github.aesteve.nubes.orm.hibernate.HibernateNubes;
 import com.github.aesteve.vertx.nubes.VertxNubes;
 
 import io.vertx.core.AbstractVerticle;

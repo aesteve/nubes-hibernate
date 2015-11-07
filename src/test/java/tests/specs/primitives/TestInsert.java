@@ -6,7 +6,7 @@ import mock.domains.Master;
 
 import org.junit.Test;
 
-import com.github.aesteve.nubes.hibernate.queries.FindById;
+import com.github.aesteve.nubes.orm.hibernate.queries.FindById;
 
 public class TestInsert extends TestBase {
 

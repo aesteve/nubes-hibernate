@@ -3,8 +3,8 @@ package mock.fixtures;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.github.aesteve.nubes.hibernate.HibernateNubes;
-import com.github.aesteve.nubes.hibernate.services.HibernateService;
+import com.github.aesteve.nubes.orm.hibernate.HibernateNubes;
+import com.github.aesteve.nubes.orm.hibernate.services.HibernateService;
 import com.github.aesteve.vertx.nubes.annotations.services.Service;
 import com.github.aesteve.vertx.nubes.fixtures.Fixture;
 import com.github.aesteve.vertx.nubes.utils.async.AsyncUtils;

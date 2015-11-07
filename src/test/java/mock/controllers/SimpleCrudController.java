@@ -4,12 +4,12 @@ import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Root;
 
-import com.github.aesteve.nubes.hibernate.annotations.Create;
-import com.github.aesteve.nubes.hibernate.annotations.RemoveById;
-import com.github.aesteve.nubes.hibernate.annotations.RetrieveById;
-import com.github.aesteve.nubes.hibernate.annotations.RetrieveByQuery;
-import com.github.aesteve.nubes.hibernate.annotations.Update;
-import com.github.aesteve.nubes.hibernate.queries.FindById;
+import com.github.aesteve.nubes.orm.annotations.Create;
+import com.github.aesteve.nubes.orm.annotations.RemoveById;
+import com.github.aesteve.nubes.orm.annotations.RetrieveById;
+import com.github.aesteve.nubes.orm.annotations.RetrieveByQuery;
+import com.github.aesteve.nubes.orm.annotations.Update;
+import com.github.aesteve.nubes.orm.hibernate.queries.FindById;
 import com.github.aesteve.vertx.nubes.annotations.Controller;
 import com.github.aesteve.vertx.nubes.annotations.mixins.ContentType;
 import com.github.aesteve.vertx.nubes.annotations.params.Param;

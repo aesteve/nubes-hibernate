@@ -3,7 +3,7 @@ package tests.specs.primitives;
 import org.junit.Before;
 import org.junit.runner.RunWith;
 
-import com.github.aesteve.nubes.hibernate.services.HibernateService;
+import com.github.aesteve.nubes.orm.hibernate.services.HibernateService;
 
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;

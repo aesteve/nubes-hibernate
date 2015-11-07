@@ -5,8 +5,11 @@ plugins {
 	id 'maven'
 }
 
+def VERTX_VERSION = "3.1.0"
+def NUBES_VERSION = "0.1-SNAPSHOT"
+
 group='com.github.aesteve'
-version='0.1-SNAPSHOT'
+version=NUBES_VERSION
 
 
 repositories {
@@ -14,14 +17,13 @@ repositories {
 	mavenLocal()
 }
 
-def vertxVersion = "3.1.0"
 
 dependencies {
 
-	compile "com.github.aesteve:vertx-nubes:0.1-SNAPSHOT"
+	compile "com.github.aesteve:nubes-orm:${NUBES_VERSION}"
 	compile 'org.hibernate:hibernate-entitymanager:5.0.3.Final'
 
-	testCompile "io.vertx:vertx-unit:${vertxVersion}"
+	testCompile "io.vertx:vertx-unit:${VERTX_VERSION}"
 	testCompile 'junit:junit:4.12'
 	testCompile 'org.apache.commons:commons-lang3:3.3.2'
 
