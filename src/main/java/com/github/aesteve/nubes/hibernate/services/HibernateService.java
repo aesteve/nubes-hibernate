@@ -5,6 +5,7 @@ import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
+import io.vertx.ext.web.RoutingContext;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -151,7 +152,11 @@ public class HibernateService implements Service {
 		});
 	}
 
-	public void createSession(Handler<AsyncResult<String>> handler) {
+	public void createSession(Handler<AsyncResult<String>> handler, RoutingContext context) {
+		if (context.get(SESSION_ID_CTX) != null) {
+			handler.handle(context.get(SESSION_ID_CTX));
+			return;
+		}
 		vertx.executeBlocking(future -> {
 			try {
 				String sessionId = generateSessionId();

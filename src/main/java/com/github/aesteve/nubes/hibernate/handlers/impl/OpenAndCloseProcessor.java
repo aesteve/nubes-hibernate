@@ -1,5 +1,7 @@
 package com.github.aesteve.nubes.hibernate.handlers.impl;
 
+import javax.persistence.EntityManager;
+
 import com.github.aesteve.nubes.hibernate.services.HibernateService;
 import com.github.aesteve.vertx.nubes.handlers.Processor;
 import com.github.aesteve.vertx.nubes.utils.async.AsyncUtils;
@@ -20,10 +22,12 @@ public abstract class OpenAndCloseProcessor implements Processor {
 			if (result.failed()) {
 				context.fail(result.cause());
 			} else {
+				EntityManager em = hibernate.getManager(result.result(), null);
+				em.getTransaction().begin();
 				context.put(HibernateService.SESSION_ID_CTX, result.result());
 				context.next();
 			}
-		});
+		}, context);
 	}
 	
 	@Override
