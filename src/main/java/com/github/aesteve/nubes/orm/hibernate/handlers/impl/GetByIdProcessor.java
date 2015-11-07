@@ -1,8 +1,8 @@
 package com.github.aesteve.nubes.orm.hibernate.handlers.impl;
 
 import com.github.aesteve.nubes.orm.annotations.RetrieveById;
-import com.github.aesteve.nubes.orm.hibernate.queries.FindById;
 import com.github.aesteve.nubes.orm.hibernate.services.HibernateService;
+import com.github.aesteve.nubes.orm.queries.FindById;
 import com.github.aesteve.vertx.nubes.handlers.AnnotationProcessor;
 import com.github.aesteve.vertx.nubes.marshallers.Payload;
 

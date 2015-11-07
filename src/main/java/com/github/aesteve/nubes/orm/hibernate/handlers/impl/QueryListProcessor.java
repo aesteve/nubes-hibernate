@@ -4,8 +4,9 @@ import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 
 import com.github.aesteve.nubes.orm.annotations.RetrieveByQuery;
-import com.github.aesteve.nubes.orm.hibernate.queries.FindBy;
+import com.github.aesteve.nubes.orm.hibernate.queries.CriteriaQueryBuilder;
 import com.github.aesteve.nubes.orm.hibernate.services.HibernateService;
+import com.github.aesteve.nubes.orm.queries.FindBy;
 import com.github.aesteve.vertx.nubes.context.PaginationContext;
 import com.github.aesteve.vertx.nubes.handlers.AnnotationProcessor;
 import com.github.aesteve.vertx.nubes.marshallers.Payload;
@@ -29,7 +30,8 @@ public class QueryListProcessor extends OpenAndCloseProcessor implements Annotat
 			crit = (CriteriaQuery)payload.get();
 		} else if (payloadClass.equals(FindBy.class)) {
 			CriteriaBuilder builder = hibernate.getCriteriaBuilder(sessionId);
-			crit = ((FindBy)payload.get()).toCriteriaQuery(builder);
+			FindBy findBy = (FindBy)payload.get();
+			crit = new CriteriaQueryBuilder(findBy).toCriteriaQuery(builder);
 		} else {
 			context.fail(new Exception("Unknown type of payload, cannot create query"));
 			return;

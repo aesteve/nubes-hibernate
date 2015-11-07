@@ -1,12 +1,5 @@
 package com.github.aesteve.nubes.orm.hibernate.services;
 
-import io.vertx.core.AsyncResult;
-import io.vertx.core.Future;
-import io.vertx.core.Handler;
-import io.vertx.core.Vertx;
-import io.vertx.core.json.JsonObject;
-import io.vertx.ext.web.RoutingContext;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -27,10 +20,18 @@ import javax.persistence.criteria.CriteriaQuery;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.github.aesteve.nubes.orm.hibernate.queries.FindBy;
-import com.github.aesteve.nubes.orm.hibernate.queries.FindById;
-import com.github.aesteve.nubes.orm.hibernate.queries.ListAndCount;
+import com.github.aesteve.nubes.orm.hibernate.queries.CriteriaQueryBuilder;
+import com.github.aesteve.nubes.orm.queries.FindBy;
+import com.github.aesteve.nubes.orm.queries.FindById;
+import com.github.aesteve.nubes.orm.queries.ListAndCount;
 import com.github.aesteve.vertx.nubes.services.Service;
+
+import io.vertx.core.AsyncResult;
+import io.vertx.core.Future;
+import io.vertx.core.Handler;
+import io.vertx.core.Vertx;
+import io.vertx.core.json.JsonObject;
+import io.vertx.ext.web.RoutingContext;
 
 public class HibernateService implements Service {
 
@@ -346,7 +347,7 @@ public class HibernateService implements Service {
 	public <T> void findBy(EntityManager entityManager, FindBy<T> findBy, Handler<AsyncResult<T>> handler) {
 		vertx.executeBlocking(future -> {
 			CriteriaBuilder builder = entityManager.getCriteriaBuilder();
-			CriteriaQuery<T> crit = findBy.toCriteriaQuery(builder);
+			CriteriaQuery<T> crit = new CriteriaQueryBuilder<>(findBy).toCriteriaQuery(builder);
 			Query q = entityManager.createQuery(crit);
 			try {
 				T result = (T) q.getSingleResult();

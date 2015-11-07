@@ -9,7 +9,7 @@ import com.github.aesteve.nubes.orm.annotations.RemoveById;
 import com.github.aesteve.nubes.orm.annotations.RetrieveById;
 import com.github.aesteve.nubes.orm.annotations.RetrieveByQuery;
 import com.github.aesteve.nubes.orm.annotations.Update;
-import com.github.aesteve.nubes.orm.hibernate.queries.FindById;
+import com.github.aesteve.nubes.orm.queries.FindById;
 import com.github.aesteve.vertx.nubes.annotations.Controller;
 import com.github.aesteve.vertx.nubes.annotations.mixins.ContentType;
 import com.github.aesteve.vertx.nubes.annotations.params.Param;

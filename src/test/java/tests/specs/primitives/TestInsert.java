@@ -1,12 +1,12 @@
 package tests.specs.primitives;
 
+import org.junit.Test;
+
+import com.github.aesteve.nubes.orm.queries.FindById;
+
 import io.vertx.ext.unit.TestContext;
 import mock.domains.Dog;
 import mock.domains.Master;
-
-import org.junit.Test;
-
-import com.github.aesteve.nubes.orm.hibernate.queries.FindById;
 
 public class TestInsert extends TestBase {
 
