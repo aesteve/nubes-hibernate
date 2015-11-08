@@ -19,7 +19,7 @@ public class CriteriaQueryBuilder<T> {
 		Class<T> clazz = findBy.getType();
 		CriteriaQuery<T> crit = builder.createQuery(clazz);
 		Root<T> root = crit.from(clazz);
-		findBy.getRestrictions().forEach((key, value) -> {
+		findBy.getStrictRestrictions().forEach((key, value) -> {
 			crit.where(builder.equal(root.get(key), value));
 		});
 		return crit;
