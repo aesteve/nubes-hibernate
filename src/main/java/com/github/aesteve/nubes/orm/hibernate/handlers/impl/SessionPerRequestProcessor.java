@@ -17,9 +17,4 @@ public class SessionPerRequestProcessor extends OpenAndCloseProcessor implements
 		context.next();
 	}
 
-	@Override
-	public Class<? extends SessionPerRequest> getAnnotationType() {
-		return SessionPerRequest.class;
-	}
-
 }

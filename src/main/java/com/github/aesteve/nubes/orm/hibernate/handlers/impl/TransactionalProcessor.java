@@ -19,9 +19,4 @@ public class TransactionalProcessor extends OpenAndCloseProcessor implements Ann
 		hibernate.flushAndClose(sessionId, AsyncUtils.nextOrFail(context));
 	}
 
-	@Override
-	public Class<? extends Transactional> getAnnotationType() {
-		return Transactional.class;
-	}
-
 }

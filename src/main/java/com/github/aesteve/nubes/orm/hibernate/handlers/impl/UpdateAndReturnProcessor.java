@@ -29,9 +29,4 @@ public class UpdateAndReturnProcessor extends OpenAndCloseProcessor implements A
 		});
 	}
 
-	@Override
-	public Class<? extends Update> getAnnotationType() {
-		return Update.class;
-	}
-
 }

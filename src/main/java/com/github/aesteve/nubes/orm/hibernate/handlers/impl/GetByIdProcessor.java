@@ -36,9 +36,4 @@ public class GetByIdProcessor extends OpenAndCloseProcessor implements Annotatio
 		});
 	}
 
-	@Override
-	public Class<? extends RetrieveById> getAnnotationType() {
-		return RetrieveById.class;
-	}
-
 }

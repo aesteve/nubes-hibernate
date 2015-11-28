@@ -51,9 +51,4 @@ public class QueryListProcessor extends OpenAndCloseProcessor implements Annotat
 		});
 	}
 
-	@Override
-	public Class<? extends RetrieveByQuery> getAnnotationType() {
-		return RetrieveByQuery.class;
-	}
-
 }

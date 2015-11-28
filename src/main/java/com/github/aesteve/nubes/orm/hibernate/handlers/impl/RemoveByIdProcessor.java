@@ -28,9 +28,4 @@ public class RemoveByIdProcessor extends OpenAndCloseProcessor implements Annota
 		});
 	}
 
-	@Override
-	public Class<? extends RemoveById> getAnnotationType() {
-		return RemoveById.class;
-	}
-
 }

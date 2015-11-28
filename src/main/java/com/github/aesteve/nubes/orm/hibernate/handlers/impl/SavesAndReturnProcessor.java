@@ -29,9 +29,4 @@ public class SavesAndReturnProcessor extends OpenAndCloseProcessor implements An
 		});
 	}
 
-	@Override
-	public Class<? extends Create> getAnnotationType() {
-		return Create.class;
-	}
-
 }
